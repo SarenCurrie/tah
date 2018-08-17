@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Temperature and Humidity</title>
+  </head>
+  <style media="screen">
+  body {
+    font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+    margin:40px auto;
+    max-width:1450px;
+    line-height:1.6;
+    font-size:18px;
+    color:#333;
+    background-color:#FAFAFA;
+    padding:0 10px
+  }
+  h1, h2, h3 {
+    line-height:1.2
+  }
+  </style>
+  <body>
+    <div style="width:75%;">
+      <h2>Temperature</h2>
+      <canvas id="temperature_chart"></canvas>
+      <h2>Humidity</h2>
+      <canvas id="humidity_chart"></canvas>
+    </div>
+    <script src="Chart.bundle.js" charset="utf-8"></script>
+    <script>
+    function colorForLocation() {
+      return 'rgb(100, 50, 200)';
+    }
+    window.onload = function() {
+      var temperatureCtx = document.getElementById('temperature_chart').getContext('2d');
+      var humidityCtx = document.getElementById('humidity_chart').getContext('2d');
+      function reqListener () {
+        var data = JSON.parse(this.responseText);
+        console.log(data);
+        var lines = {};
+        for (var i = 0; i < data.length; i++) {
+          var entry = data[i];
+          if (!lines[entry.reading_type]) {
+            lines[entry.reading_type] = {};
+          }
+          if (!lines[entry.reading_type][entry.location]) {
+            lines[entry.reading_type][entry.location] = [];
+          }
+          lines[entry.reading_type][entry.location].push(entry);
+          lines[entry.reading_type][entry.location] = lines[entry.reading_type][entry.location].sort(function (entry1, entry2) {
+            return entry1.x > entry2.x
+          });
+        }
+
+        console.log(data);
+        console.log(lines);
+
+        var timeFormat = 'MM/DD/YYYY HH:mm';
+        var color = Chart.helpers.color;
+        var temperatureConfig = {
+          type: 'line',
+          data: {
+            labels: [ // Date Objects
+              new Date(Date.now() - 1000 * 60 * 60 * 24),
+              new Date(),
+            ],
+            datasets: Object.values(lines.temperature).map(function (location) {
+              return {
+                label: location[0].location,
+                backgroundColor: color(colorForLocation(location[0].location)).alpha(0.5).rgbString(),
+                borderColor: colorForLocation(location[0].location),
+                fill: false,
+                data: location.map(function (entry) {
+                  return {
+                    x: new Date(parseInt(entry.timestamp)),
+                    y: entry.reading
+                  }
+                }),
+                yAxisID: 'Temperature',
+              }
+            }),
+          },
+          options: {
+            title: {
+              text: 'Chart.js Time Scale'
+            },
+            scales: {
+              xAxes: [{
+                type: 'time',
+                time: {
+                  format: timeFormat,
+                  // round: 'day'
+                  tooltipFormat: 'll HH:mm'
+                },
+                scaleLabel: {
+                  display: true,
+                  labelString: 'Time'
+                }
+              }],
+              yAxes: [{
+                scaleLabel: {
+                  display: true,
+                  labelString: 'Temperature'
+                },
+                position: 'left',
+                id: 'Temperature'
+              }],
+            },
+          }
+        };
+        window.myLine = new Chart(temperatureCtx, temperatureConfig);
+
+        var humidityConfig = {
+          type: 'line',
+          data: {
+            labels: [ // Date Objects
+              new Date(Date.now() - 1000 * 60 * 60 * 24),
+              new Date(),
+            ],
+            datasets: Object.values(lines.humidity).map(function (location) {
+              return {
+                label: location[0].location,
+                backgroundColor: color(colorForLocation(location[0].location)).alpha(0.5).rgbString(),
+                borderColor: colorForLocation(location[0].location),
+                fill: false,
+                data: location.map(function (entry) {
+                  return {
+                    x: new Date(parseInt(entry.timestamp)),
+                    y: entry.reading
+                  }
+                }),
+                yAxisID: 'Temperature',
+              }
+            }),
+          },
+          options: {
+            title: {
+              text: 'Chart.js Time Scale'
+            },
+            scales: {
+              xAxes: [{
+                type: 'time',
+                time: {
+                  format: timeFormat,
+                  // round: 'day'
+                  tooltipFormat: 'll HH:mm'
+                },
+                scaleLabel: {
+                  display: true,
+                  labelString: 'Time'
+                }
+              }],
+              yAxes: [{
+                scaleLabel: {
+                  display: true,
+                  labelString: 'Temperature'
+                },
+                position: 'left',
+                id: 'Temperature'
+              }],
+            },
+          }
+        };
+        window.myLine = new Chart(humidityCtx, humidityConfig);
+      }
+
+      var oReq = new XMLHttpRequest();
+      oReq.addEventListener("load", reqListener);
+      oReq.open("GET", "/history");
+      oReq.send();
+    };
+    </script>
+  </body>
+</html>
