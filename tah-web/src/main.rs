@@ -35,22 +35,6 @@ fn main() {
                   location TEXT NOT NULL
                   )", &[]).unwrap();
 
-    conn.lock().unwrap().execute("INSERT INTO entry (time, reading, type, location)
-                VALUES (?1, ?2, ?3, ?4)",
-               &[&((SystemTime::now() - Duration::from_secs(60 * 60 * 6)).duration_since(UNIX_EPOCH).expect("?").as_secs() * 1000).to_string(), &15.5, &"temperature", &"sitting room"]).unwrap();
-
-   conn.lock().unwrap().execute("INSERT INTO entry (time, reading, type, location)
-               VALUES (?1, ?2, ?3, ?4)",
-              &[&((SystemTime::now() - Duration::from_secs(60 * 60 * 2)).duration_since(UNIX_EPOCH).expect("?").as_secs() * 1000).to_string(), &18.5, &"temperature", &"sitting room"]).unwrap();
-   //
-   conn.lock().unwrap().execute("INSERT INTO entry (time, reading, type, location)
-               VALUES (?1, ?2, ?3, ?4)",
-              &[&((SystemTime::now() - Duration::from_secs(60 * 60 * 8)).duration_since(UNIX_EPOCH).expect("?").as_secs() * 1000).to_string(), &63.5, &"humidity", &"sitting room"]).unwrap();
-
-   conn.lock().unwrap().execute("INSERT INTO entry (time, reading, type, location)
-               VALUES (?1, ?2, ?3, ?4)",
-              &[&((SystemTime::now() - Duration::from_secs(60 * 60 * 4)).duration_since(UNIX_EPOCH).expect("?").as_secs() * 1000).to_string(), &65.5, &"humidity", &"sitting room"]).unwrap();
-
     rouille::start_server("localhost:8000", move |request| {
         let response = rouille::match_assets(&request, "static");
         if response.is_success() {
