@@ -1,0 +1,8 @@
+[package]
+name = "tah"
+version = "0.1.0"
+authors = ["Saren Currie <saren@sarencurrie.com>"]
+
+[dependencies]
+dht22_pi = "0.1.0"
+rusqlite = "0.14.0"
